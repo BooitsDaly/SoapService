@@ -54,7 +54,14 @@ public class Buisness{
         try{
             dl = new DataLayer("development");
             List<companydata.Department> response = dl.getAllDepartment(company);
-            String responseString = response.toString();
+            String responseString = "[{\"department\":{";
+            for(int i = 0; i < response.size(); i++){
+                responseString +="{\"dept_id\":"+ response.get(i).getId() +"\",\"company\":\""+ response.get(i).getCompany() +"\",\"dept_name\":\""+response.get(i).getDeptNo()+"\", \"dept_no\":\""+ response.get(i).getDeptNo() +"\",\"location\": \""+ response.get(i).getLocation() +"\" }";
+                if(i != response.size()-1){
+                    responseString +=",";
+                }
+            }
+            responseString += "}]";
             return responseString;
         }catch(Exception e){
             return "{\"error\":\" Departments not found \"}";
@@ -105,17 +112,14 @@ public class Buisness{
         DataLayer dl = null;
         String responseString = "";
         try{
-            dl = new DataLayer("department");
+            dl = new DataLayer("development");
             Gson gson = new Gson();
             Department department = gson.fromJson(dept, Department.class);
-            int response = dl.deleteDepartment(department.getCompany(),department.getDepartmentID());
-            if(response < 0){
-                responseString = "{\"success\":\" Department "+ department.getDepartmentID() +" from " +department.getCompany() + " \"}";
-            }else{
-                responseString = "{\"error\":\" An error occurred while trying to delete the department  \"}";
-            }
+            dl.deleteDepartment(department.getCompany(),department.getDepartmentID());
+            responseString = "{\"success\":\" Department "+ department.getDepartmentID() +" from " +department.getCompany() + " \"}";
             return responseString;
         }catch(Exception e){
+            System.out.println(e);
             return "{\"error\":\" An error occurred while trying to delete the department  \"}";
         }finally{
             dl.close();
