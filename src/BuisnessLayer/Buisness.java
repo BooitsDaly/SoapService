@@ -20,11 +20,7 @@ public class Buisness{
             String json;
             dl = new DataLayer("development");
             int response = dl.deleteCompany(companyName);
-            if(response > 0){
-                json = "{\"Success\":\" "+ companyName +" was deleted\"}";
-            }else{
-                json = "{\"error\":\" "+ companyName +" was not deleted\"}";
-            }
+            json = "{\"Success\":\" "+ companyName +" was deleted\"}";
             return json;
         }catch(Exception e){
             return "{\"error\":\" "+ companyName +" was not deleted\"}";
@@ -39,10 +35,11 @@ public class Buisness{
             dl = new DataLayer("development");
             Gson gson = new Gson();
             Department department = gson.fromJson(dept, Department.class );
-            companydata.Department response = dl.getDepartment(department.getDepartment(), department.getDepartmentID());
-            String responseString =response.toString();
+            companydata.Department response = dl.getDepartment(department.getCompany(), department.getDepartmentID());
+            String responseString = "{\"department\":{\"dept_id\":"+ response.getId() +"\",\"company\":\"" + response.getCompany() + "\",\"dept_name\":\""+ response.getDeptName() +"\",\"dept_no\": \""+ response.getDeptNo() +"\",\"location\":\""+ response.getLocation() + "\"}}";
             return responseString;
         }catch(Exception e){
+            System.out.println(e);
             return "{\"error\":\" Department was not found \"}";
         }finally{
             dl.close();
