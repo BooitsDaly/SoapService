@@ -125,7 +125,8 @@ public class Buisness{
         try{
             dl = new DataLayer("development");
             Employee response = dl.getEmployee(id);
-            return response.toString();
+            return "{\"employee\":{\"emp_id\":"+ response.getId() +"\",\"emp_name\":\""+ response.getEmpName() +"\",\"emp_no\":\""+response.getEmpNo()+"\", \"hire_date\":\""+ response.getHireDate() +"\",\"job\": \""+ response.getJob() +"\",\"salary\":"+ response.getSalary() +", \"dept_id\": "+ response.getDeptId() +", \"mng_id\": "+ response.getMngId() +"}}";
+
         }catch(Exception e){
             return "{\"error\":\" An error occurred while trying to retrieve employee information \"}";
         }finally{
@@ -193,7 +194,7 @@ public class Buisness{
             }
             if(iii && iv && v){
                 Employee response = dl.insertEmployee(emp);
-                responseString +="{\"employee\":{\"emp_id\":"+ response.getId() +"\",\"emp_name\":\""+ response.getEmpName() +"\",\"emp_no\":\""+response.getEmpNo()+"\", \"hire_date\":\""+ response.getHireDate() +"\",\"job\": \""+ response.getJob() +"\",\"salary\":"+ response.getSalary() +", \"dept_id\": "+ response.getDeptId() +", \"mng_id\": "+ response.getMngId() +"}}";
+                responseString ="{\"employee\":{\"emp_id\":"+ response.getId() +"\",\"emp_name\":\""+ response.getEmpName() +"\",\"emp_no\":\""+response.getEmpNo()+"\", \"hire_date\":\""+ response.getHireDate() +"\",\"job\": \""+ response.getJob() +"\",\"salary\":"+ response.getSalary() +", \"dept_id\": "+ response.getDeptId() +", \"mng_id\": "+ response.getMngId() +"}}";
 
             }else{
                 responseString = "{\"error\":\" An error occurred while trying to insert employees information \"}";
