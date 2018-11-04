@@ -89,11 +89,12 @@ public class Buisness{
             dl = new DataLayer("development");
             Gson gson = new Gson();
             Department department = gson.fromJson(dept, Department.class);
-            companydata.Department test = new companydata.Department(department.getCompany(),department.getDept_name(),department.getDept_no(),department.getLocation());
+            companydata.Department test = new companydata.Department(department.getDepartmentID(),department.getCompany(),department.getDept_name(),department.getDept_no(),department.getLocation());
             companydata.Department response = dl.updateDepartment(test);
             responseString = "{\"success\":{\"department\":{\"dept_id\":\""+ response.getId() +"\",\"company\":\"" + response.getCompany() + "\",\"dept_name\":\""+ response.getDeptName() +"\",\"dept_no\": \""+ response.getDeptNo() +"\",\"location\":\""+ response.getLocation() + "\"}}}";
             return responseString;
         }catch(Exception e){
+            System.out.println(e);
             return "{\"error\":\" An error occurred while trying to update the department  \"}";
         }finally{
             dl.close();
