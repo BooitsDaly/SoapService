@@ -39,7 +39,6 @@ public class Buisness{
             String responseString = "{\"department\":{\"dept_id\":"+ response.getId() +"\",\"company\":\"" + response.getCompany() + "\",\"dept_name\":\""+ response.getDeptName() +"\",\"dept_no\": \""+ response.getDeptNo() +"\",\"location\":\""+ response.getLocation() + "\"}}";
             return responseString;
         }catch(Exception e){
-            System.out.println(e);
             return "{\"error\":\" Department was not found \"}";
         }finally{
             dl.close();
@@ -98,7 +97,6 @@ public class Buisness{
             responseString = "{\"success\":{\"department\":{\"dept_id\":\""+ response.getId() +"\",\"company\":\"" + response.getCompany() + "\",\"dept_name\":\""+ response.getDeptName() +"\",\"dept_no\": \""+ response.getDeptNo() +"\",\"location\":\""+ response.getLocation() + "\"}}}";
             return responseString;
         }catch(Exception e){
-            System.out.println(e);
             return "{\"error\":\" An error occurred while trying to update the department  \"}";
         }finally{
             dl.close();
@@ -116,7 +114,6 @@ public class Buisness{
             responseString = "{\"success\":\" Department "+ department.getDepartmentID() +" from " +department.getCompany() + " \"}";
             return responseString;
         }catch(Exception e){
-            System.out.println(e);
             return "{\"error\":\" An error occurred while trying to delete the department  \"}";
         }finally{
             dl.close();
@@ -141,10 +138,19 @@ public class Buisness{
         try{
             dl = new DataLayer("development");
             List<Employee> response = dl.getAllEmployee(company);
-            return response.toString();
+            String responseString = "[{\"employee\":{";
+            for(int i = 0; i < response.size(); i++){
+                responseString +="{\"emp_id\":"+ response.get(i).getId() +"\",\"emp_name\":\""+ response.get(i).getEmpName() +"\",\"emp_no\":\""+response.get(i).getEmpNo()+"\", \"hire_date\":\""+ response.get(i).getHireDate() +"\",\"job\": \""+ response.get(i).getJob() +"\",\"salary\":"+ response.get(i).getSalary() +", \"dept_id\": "+ response.get(i).getDeptId() +", \"mng_id\": "+ response.get(i).getMngId() +" }";
+                if(i != response.size()-1){
+                    responseString +=",";
+                }
+            }
+            responseString += "}]";
+            return responseString;
         }catch(Exception e){
             return "{\"error\":\" An error occurred while trying to retrieve employees information \"}";
         }finally{
+
             dl.close();
         }
     }
@@ -155,7 +161,7 @@ public class Buisness{
             dl = new DataLayer("development");
             String responseString = "";
             boolean iii = false;
-            boolean iv = true;
+            boolean iv = false;
             boolean v = true;
             /**
              * i.	dept_id must exist as a Department in your company
@@ -166,7 +172,6 @@ public class Buisness{
              */
             Gson gson=  new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").create();
             Employee emp = gson.fromJson(employee, Employee.class);
-            System.out.println(emp);
             //department id must exist as a department in company
             dl.getDepartment(emp.getEmpNo(), emp.getDeptId());
             //mng_id must be a record id of an existing employee
@@ -178,32 +183,23 @@ public class Buisness{
                     break;
                 }
             }
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             Date timeStamp = Calendar.getInstance().getTime();
             Date inputDate = emp.getHireDate();
             if(timeStamp.equals(inputDate) || timeStamp.after(inputDate)){
                 iii = true;
             }
-            Calendar cal = Calendar.getInstance();
-            System.out.println(cal);
-            cal.setTime(timeStamp);
-            System.out.println(cal.get(Calendar.DAY_OF_WEEK));
-            System.out.println(Calendar.SATURDAY);
-            if(cal.get(Calendar.DAY_OF_WEEK) != Calendar.SATURDAY && cal.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY){
+            if(inputDate.getDay() != Calendar.SATURDAY && inputDate.getDay() != Calendar.SUNDAY){
                 iv = true;
             }
-            System.out.println(iii);
-            System.out.println(iv);
-            System.out.println(v);
             if(iii && iv && v){
-                responseString = dl.insertEmployee(emp).toString();
+                Employee response = dl.insertEmployee(emp);
+                responseString +="{\"employee\":{\"emp_id\":"+ response.getId() +"\",\"emp_name\":\""+ response.getEmpName() +"\",\"emp_no\":\""+response.getEmpNo()+"\", \"hire_date\":\""+ response.getHireDate() +"\",\"job\": \""+ response.getJob() +"\",\"salary\":"+ response.getSalary() +", \"dept_id\": "+ response.getDeptId() +", \"mng_id\": "+ response.getMngId() +"}}";
+
             }else{
-                System.out.println("here");
                 responseString = "{\"error\":\" An error occurred while trying to insert employees information \"}";
             }
             return responseString;
         }catch(Exception e){
-            System.out.println(e);
             return "{\"error\":\" An error occurred while trying to insert employees information \"}";
         }finally {
             dl.close();
