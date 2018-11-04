@@ -2,6 +2,7 @@ package BuisnessLayer;
 
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import companydata.DataLayer;
 import companydata.Employee;
 import companydata.Timecard;
@@ -11,7 +12,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class Buisness {
+public class Buisness{
 
     public String deleteAllCompany(String companyName){
         DataLayer dl = null;
@@ -68,23 +69,10 @@ public class Buisness {
         try{
             dl = new DataLayer("development");
             Gson gson = new Gson();
-            System.out.println("got in the try");
-            System.out.println(dept);
-            Department department = gson.fromJson(dept, Department.class);
-            System.out.println(department);
-            //check that the id doesnt match
-            List<companydata.Department> departments = dl.getAllDepartment(department.getCompany());
-            System.out.println("got in the try");
-            for (companydata.Department department1 : departments) {
-                if (department1.getDeptNo().equals(department.getDepartmentNumb())) {
-                    responseString = "{\"error\":\" Cannot have two department numbers be the same \"}";
-                    break;
-                }
-            }
-            if(responseString.equals("")){
-                companydata.Department response = dl.insertDepartment(department);
-                responseString = response.toString();
-            }
+            Department department = gson.fromJson(dept,Department.class);
+            companydata.Department test = new companydata.Department(department.getDepartmentID(),department.getCompany(),department.getDept_name(),department.getDept_no(),department.getLocation());
+            companydata.Department response = dl.insertDepartment(test);
+            responseString = "{\"success\":{\"department\":{\"company\":\"" + response.getCompany() + "\",\"dept_name\":\""+ response.getDeptName() +"\",\"dept_no\": \""+ response.getDeptNo() +"\",\"location\":\""+ response.getLocation() + "\"}}}";
             return responseString;
         }catch(Exception e){
             return "{\"error\":\" An error occurred while trying to add the department\"}";
@@ -101,15 +89,9 @@ public class Buisness {
             dl = new DataLayer("development");
             Gson gson = new Gson();
             Department department = gson.fromJson(dept, Department.class);
-            List<companydata.Department> departments = dl.getAllDepartment(department.getCompany());
-            for (companydata.Department department1 : departments) {
-                if(department1.getId() == department.getId() && !(department1.getDeptNo().equals(department.getDepartmentNumb()))){
-                    companydata.Department response = dl.updateDepartment(department);
-                    responseString = response.toString();
-                }else{
-                    responseString = "{\"error\":\" Department ID must match exisiting ID, Department number must also be unique  \"}";
-                }
-            }
+            companydata.Department test = new companydata.Department(department.getCompany(),department.getDept_name(),department.getDept_no(),department.getLocation());
+            companydata.Department response = dl.updateDepartment(test);
+            responseString = "{\"success\":{\"department\":{\"dept_id\":\""+ response.getId() +"\",\"company\":\"" + response.getCompany() + "\",\"dept_name\":\""+ response.getDeptName() +"\",\"dept_no\": \""+ response.getDeptNo() +"\",\"location\":\""+ response.getLocation() + "\"}}}";
             return responseString;
         }catch(Exception e){
             return "{\"error\":\" An error occurred while trying to update the department  \"}";
@@ -125,7 +107,7 @@ public class Buisness {
             dl = new DataLayer("department");
             Gson gson = new Gson();
             Department department = gson.fromJson(dept, Department.class);
-            int response = dl.deleteDepartment(department.getCompany(),department.getId());
+            int response = dl.deleteDepartment(department.getCompany(),department.getDepartmentID());
             if(response < 0){
                 responseString = "{\"success\":\" Department "+ department.getDepartmentID() +" from " +department.getCompany() + " \"}";
             }else{
@@ -170,10 +152,8 @@ public class Buisness {
         try{
             dl = new DataLayer("development");
             String responseString = "";
-            boolean i = false;
-            boolean ii = false;
             boolean iii = false;
-            boolean iv = false;
+            boolean iv = true;
             boolean v = true;
             /**
              * i.	dept_id must exist as a Department in your company
@@ -182,19 +162,16 @@ public class Buisness {
              * iv.	hire_date must be a Monday, Tuesday, Wednesday, Thursday or a Friday. It cannot be Saturday or Sunday.
              * v.	emp_id must be unique amongst all employees in the database, including those of other companies. You may wish to include your RIT user ID in the employee number somehow.
              */
-            Gson gson = new Gson();
+            Gson gson=  new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").create();
             Employee emp = gson.fromJson(employee, Employee.class);
+            System.out.println(emp);
             //department id must exist as a department in company
-            Department result = (Department) dl.getDepartment(emp.getEmpNo(),emp.getDeptId());
-            if(result.getDepartment() != null){
-                i = true;
-            }
+            dl.getDepartment(emp.getEmpNo(), emp.getDeptId());
             //mng_id must be a record id of an existing employee
+            dl.getEmployee(emp.getId());
             List<Employee> allEmployees = dl.getAllEmployee(emp.getEmpNo());
             for (Employee allEmployee : allEmployees) {
-                if (allEmployee.getMngId() == emp.getMngId()) {
-                    ii = true;
-                }else if(allEmployee.getId() == emp.getId()){
+                if(allEmployee.getId() == emp.getId()){
                     v = false;
                     break;
                 }
@@ -206,17 +183,25 @@ public class Buisness {
                 iii = true;
             }
             Calendar cal = Calendar.getInstance();
+            System.out.println(cal);
             cal.setTime(timeStamp);
+            System.out.println(cal.get(Calendar.DAY_OF_WEEK));
+            System.out.println(Calendar.SATURDAY);
             if(cal.get(Calendar.DAY_OF_WEEK) != Calendar.SATURDAY && cal.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY){
                 iv = true;
             }
-            if(i && ii && iii && iv && v){
+            System.out.println(iii);
+            System.out.println(iv);
+            System.out.println(v);
+            if(iii && iv && v){
                 responseString = dl.insertEmployee(emp).toString();
             }else{
+                System.out.println("here");
                 responseString = "{\"error\":\" An error occurred while trying to insert employees information \"}";
             }
             return responseString;
         }catch(Exception e){
+            System.out.println(e);
             return "{\"error\":\" An error occurred while trying to insert employees information \"}";
         }finally {
             dl.close();
@@ -240,12 +225,11 @@ public class Buisness {
              * iv.	hire_date must be a Monday, Tuesday, Wednesday, Thursday or a Friday. It cannot be Saturday or Sunday.
              * v.	emp_id must already exist
              */
-            //TODO: Ask about the validation of the emp_id
             Gson gson = new Gson();
             Employee emp = gson.fromJson(employee, Employee.class);
             //department id must exist as a department in company
-            Department result = (Department) dl.getDepartment(emp.getEmpNo(),emp.getDeptId());
-            if(result.getDepartment() != null){
+            companydata.Department result = dl.getDepartment(emp.getEmpNo(), emp.getDeptId());
+            if(result.getDeptName() != null){
                 i = true;
             }
             //mng_id must be a record id of an existing employee

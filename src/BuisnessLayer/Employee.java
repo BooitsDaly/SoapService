@@ -2,7 +2,7 @@ package BuisnessLayer;
 
 import java.util.Date;
 
-public class Employee extends companydata.Employee {
+public class Employee{
     private String employee;
     private String emp_id;
     private String emp_name;
