@@ -179,7 +179,7 @@ public class Buisness{
             dl.getEmployee(emp.getId());
             List<Employee> allEmployees = dl.getAllEmployee(emp.getEmpNo());
             for (Employee allEmployee : allEmployees) {
-                if(allEmployee.getId() == emp.getId()){
+                if(allEmployee.getId() == emp.getMngId()){
                     v = false;
                     break;
                 }
@@ -212,11 +212,8 @@ public class Buisness{
         try{
             dl = new DataLayer("development");
             String responseString = "";
-            boolean i = false;
-            boolean ii = false;
             boolean iii = false;
             boolean iv = false;
-            boolean v = false;
             /**
              * i.	dept_id must exist as a Department in your company
              * ii.	mng_id must be the record id of an existing Employee in your company.
@@ -224,38 +221,27 @@ public class Buisness{
              * iv.	hire_date must be a Monday, Tuesday, Wednesday, Thursday or a Friday. It cannot be Saturday or Sunday.
              * v.	emp_id must already exist
              */
-            Gson gson = new Gson();
+            Gson gson=  new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").create();
             Employee emp = gson.fromJson(employee, Employee.class);
             //department id must exist as a department in company
-            companydata.Department result = dl.getDepartment(emp.getEmpNo(), emp.getDeptId());
-            if(result.getDeptName() != null){
-                i = true;
-            }
+            dl.getDepartment(emp.getEmpNo(), emp.getDeptId());
+            dl.getEmployee(emp.getId());
+            dl.getEmployee(emp.getMngId());
             //mng_id must be a record id of an existing employee
-            List<Employee> allEmployees = dl.getAllEmployee(emp.getEmpNo());
-            for (Employee allEmployee : allEmployees) {
-                if (allEmployee.getMngId() == emp.getMngId()) {
-                    ii = true;
-                }else if(allEmployee.getId() == emp.getId()){
-                    v = true;
-                    break;
-                }
-            }
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             Date timeStamp = Calendar.getInstance().getTime();
             Date inputDate = emp.getHireDate();
             if(timeStamp.equals(inputDate) || timeStamp.after(inputDate)){
                 iii = true;
             }
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(timeStamp);
-            if(cal.get(Calendar.DAY_OF_WEEK) != Calendar.SATURDAY && cal.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY){
+            if(inputDate.getDay() != Calendar.SATURDAY && inputDate.getDay() != Calendar.SUNDAY){
                 iv = true;
             }
-            if(i && ii && iii && iv && v){
-                responseString = dl.updateEmployee(emp).toString();
+            if(iii && iv){
+                Employee response = dl.insertEmployee(emp);
+                responseString ="{\"employee\":{\"emp_id\":"+ response.getId() +"\",\"emp_name\":\""+ response.getEmpName() +"\",\"emp_no\":\""+response.getEmpNo()+"\", \"hire_date\":\""+ response.getHireDate() +"\",\"job\": \""+ response.getJob() +"\",\"salary\":"+ response.getSalary() +", \"dept_id\": "+ response.getDeptId() +", \"mng_id\": "+ response.getMngId() +"}}";
+
             }else{
-                responseString = "{\"error\":\" An error occurred while trying to change employees information \"}";
+                responseString = "{\"error\":\" An error occurred while trying to update employees information \"}";
             }
             return responseString;
         }catch(Exception e){
@@ -269,8 +255,8 @@ public class Buisness{
         DataLayer dl = null;
         try{
             dl = new DataLayer("development");
-            int result = dl.deleteEmployee(emp_id);
-            return "{\"success\":\"Employee "+ result +" deleted \"}";
+            dl.deleteEmployee(emp_id);
+            return "{\"success\":\"Employee "+ emp_id +" deleted \"}";
         }catch(Exception e){
             return "{\"error\":\" An error occurred while trying to delete employees information \"}";
         }finally{
