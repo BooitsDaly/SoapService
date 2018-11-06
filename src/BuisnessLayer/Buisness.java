@@ -241,10 +241,12 @@ public class Buisness{
                 responseString ="{\"employee\":{\"emp_id\":"+ response.getId() +"\",\"emp_name\":\""+ response.getEmpName() +"\",\"emp_no\":\""+response.getEmpNo()+"\", \"hire_date\":\""+ response.getHireDate() +"\",\"job\": \""+ response.getJob() +"\",\"salary\":"+ response.getSalary() +", \"dept_id\": "+ response.getDeptId() +", \"mng_id\": "+ response.getMngId() +"}}";
 
             }else{
+
                 responseString = "{\"error\":\" An error occurred while trying to update employees information \"}";
             }
             return responseString;
         }catch(Exception e){
+
             return "{\"error\":\" An error occurred while trying to change employees information \"}";
         }finally {
             dl.close();
@@ -255,9 +257,20 @@ public class Buisness{
         DataLayer dl = null;
         try{
             dl = new DataLayer("development");
+            Employee employee = dl.getEmployee(emp_id);
+            List<Employee> employees = dl.getAllEmployee(employee.getEmpNo());
+            System.out.println(employees.size());
+            for(Employee person : employees){
+                System.out.println("here");
+                if(person.getMngId() == employee.getId()){
+                    System.out.println("here");
+                    this.deleteEmployeeInData(person.getId());
+                }
+            }
             dl.deleteEmployee(emp_id);
             return "{\"success\":\"Employee "+ emp_id +" deleted \"}";
         }catch(Exception e){
+            System.out.println(e);
             return "{\"error\":\" An error occurred while trying to delete employees information \"}";
         }finally{
             dl.close();
@@ -269,7 +282,7 @@ public class Buisness{
         try{
             dl = new DataLayer("development");
             Timecard result = dl.getTimecard(timecard_id);
-            return result.toString();
+            return "{\"timecard\":{\"timecard_id\": "+ result.getId() +", \"start_time\":\""+result.getStartTime()+"\",\"end_time\":\""+ result.getEndTime() +"\", \"emp_id\":"+ result.getEmpId() +"}}";
         }catch(Exception e){
             return "{\"error\":\" An error occurred while trying to get timecard information \"}";
         }finally{
@@ -282,7 +295,17 @@ public class Buisness{
         try{
             dl = new DataLayer("development");
             List<Timecard> result = dl.getAllTimecard(timecard_id);
-            return result.toString();
+            String responseString = "[{";
+            int i = 0;
+            for(Timecard timcard: result){
+                responseString += "{\"timecard\":{\"timecard_id\": "+ timcard.getId() +", \"start_time\":\""+timcard.getStartTime()+"\",\"end_time\":\""+ timcard.getEndTime() +"\", \"emp_id\":"+ timcard.getEmpId() +"}}";
+                if(result.size() - 1 != i){
+                    responseString += ",";
+                }
+                i++;
+            }
+            responseString += "}]";
+            return responseString;
         }catch(Exception e){
             return "{\"error\":\" An error occurred while trying to get timecard information \"}";
         }finally{
@@ -320,7 +343,7 @@ public class Buisness{
             Date endTime = sdf.parse(String.valueOf(time.getEndTime()));
             Calendar cal = Calendar.getInstance();
             cal.setTime(startTime);
-            
+
             //check 2
             if(timeStamp.after(startTime) || timeStamp.equals(startTime)){
                 Calendar c=Calendar.getInstance();
@@ -371,7 +394,7 @@ public class Buisness{
 
             if(ii && iii && iv && v && vi){
                 Timecard result = dl.insertTimecard(time);
-                return result.toString();
+                return "{\"timecard\":{\"timecard_id\": "+ result.getId() +", \"start_time\":\""+result.getStartTime()+"\",\"end_time\":\""+ result.getEndTime() +"\", \"emp_id\":"+ result.getEmpId() +"}}";
             }else{
                 return "{\"error\":\" An error occurred while trying to insert timecard information \"}";
             }
@@ -396,20 +419,16 @@ public class Buisness{
         try{
             dl = new DataLayer("development");
             String resultString = "";
-            boolean i = false;
             boolean ii = false;
             boolean iii = false;
             boolean iv = false;
             boolean v = false;
             boolean vi = true;
 
-            Gson gson=  new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").create();
+            Gson gson=  new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
             Timecard time = gson.fromJson(timecard, Timecard.class);
             //check 1
             Timecard check1 = dl.getTimecard(time.getId());
-            if(check1.getId() != 0){
-                i = true;
-            }
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             Date timeStamp = Calendar.getInstance().getTime();
             sdf.setLenient(false);
@@ -417,15 +436,6 @@ public class Buisness{
             Date endTime = sdf.parse(String.valueOf(time.getEndTime()));
             Calendar cal = Calendar.getInstance();
             cal.setTime(startTime);
-            Calendar startWorkday = Calendar.getInstance();
-            startWorkday.set(Calendar.HOUR_OF_DAY,6);
-            startWorkday.set(Calendar.MINUTE,0);
-            startWorkday.set(Calendar.SECOND,0);
-            Calendar endWorkday = Calendar.getInstance();
-            endWorkday.set(Calendar.HOUR_OF_DAY,6);
-            endWorkday.set(Calendar.MINUTE,0);
-            endWorkday.set(Calendar.SECOND,0);
-            List<Timecard> allTimecards = dl.getAllTimecard(time.getId());
 
             //check 2
             if(timeStamp.after(startTime) || timeStamp.equals(startTime)){
@@ -436,10 +446,10 @@ public class Buisness{
                 }
             }
             //check 3
-            if(startTime.equals(endTime)){
+            if(startTime.getDay() == (endTime.getDay())){
                 Calendar c = Calendar.getInstance();
                 c.add(Calendar.HOUR, 1);
-                if(c.getTime().before(endTime)){
+                if(startTime.getTime() < (endTime.getTime())){
                     iii = true;
                 }
             }
@@ -451,21 +461,34 @@ public class Buisness{
                 }
             }
 
+            Calendar startWorkday = Calendar.getInstance();
+            startWorkday.set(Calendar.HOUR_OF_DAY,6);
+            startWorkday.set(Calendar.MINUTE,0);
+            startWorkday.set(Calendar.SECOND,0);
+            Calendar endWorkday = Calendar.getInstance();
+            endWorkday.set(Calendar.HOUR_OF_DAY,18);
+            endWorkday.set(Calendar.MINUTE,0);
+            endWorkday.set(Calendar.SECOND,0);
+            Date startWork = startWorkday.getTime();
+            Date endWork = endWorkday.getTime();
             //check 5
-            if(startTime.after(startWorkday.getTime()) && endTime.before(endWorkday.getTime())){
+            if(startTime.getHours() >= startWork.getHours() && endTime.getHours() <= endWork.getHours()){
                 v = true;
             }
 
+
+            List<Timecard> allTimecards = dl.getAllTimecard(time.getId());
             //check 6
             for (Timecard timecards : allTimecards){
                 if(timecards.getStartTime() == time.getStartTime()){
                     vi = false;
                 }
             }
+            dl.getTimecard(time.getId());
 
-            if(i && ii && iii && iv && v && vi){
-                Timecard result = dl.insertTimecard(time);
-                return result.toString();
+            if(ii && iii && iv && v && vi){
+                Timecard result = dl.updateTimecard(time);
+                return "{\"timecard\":{\"timecard_id\": "+ result.getId() +", \"start_time\":\""+result.getStartTime()+"\",\"end_time\":\""+ result.getEndTime() +"\", \"emp_id\":"+ result.getEmpId() +"}}";
             }else{
                 return "{\"error\":\" An error occurred while trying to update timecard information \"}";
             }
@@ -482,7 +505,7 @@ public class Buisness{
         try{
             dl = new DataLayer("development");
             int response = dl.deleteTimecard(timecardID);
-            return "{\"success\":\" Timecard "+ response +"  deleted \"}";
+            return "{\"success\":\" Timecard "+ timecardID +"  deleted \"}";
         }catch(Exception e){
             return "{\"error\":\" An error occurred while trying to delete timecard information \"}";
         }finally {
