@@ -34,7 +34,7 @@ public class Buisness{
         try{
             dl = new DataLayer("development");
             Gson gson = new Gson();
-            Department department = gson.fromJson(dept, Department.class );
+            BuisnessLayer.Department department = gson.fromJson(dept, BuisnessLayer.Department.class );
             companydata.Department response = dl.getDepartment(department.getCompany(), department.getDepartmentID());
             String responseString = "{\"department\":{\"dept_id\":"+ response.getId() +"\",\"company\":\"" + response.getCompany() + "\",\"dept_name\":\""+ response.getDeptName() +"\",\"dept_no\": \""+ response.getDeptNo() +"\",\"location\":\""+ response.getLocation() + "\"}}";
             return responseString;
@@ -72,7 +72,7 @@ public class Buisness{
         try{
             dl = new DataLayer("development");
             Gson gson = new Gson();
-            Department department = gson.fromJson(dept,Department.class);
+            BuisnessLayer.Department department = gson.fromJson(dept, BuisnessLayer.Department.class);
             companydata.Department test = new companydata.Department(department.getDepartmentID(),department.getCompany(),department.getDept_name(),department.getDept_no(),department.getLocation());
             companydata.Department response = dl.insertDepartment(test);
             responseString = "{\"success\":{\"department\":{\"company\":\"" + response.getCompany() + "\",\"dept_name\":\""+ response.getDeptName() +"\",\"dept_no\": \""+ response.getDeptNo() +"\",\"location\":\""+ response.getLocation() + "\"}}}";
@@ -91,7 +91,7 @@ public class Buisness{
         try{
             dl = new DataLayer("development");
             Gson gson = new Gson();
-            Department department = gson.fromJson(dept, Department.class);
+            BuisnessLayer.Department department = gson.fromJson(dept, BuisnessLayer.Department.class);
             companydata.Department test = new companydata.Department(department.getDepartmentID(),department.getCompany(),department.getDept_name(),department.getDept_no(),department.getLocation());
             companydata.Department response = dl.updateDepartment(test);
             responseString = "{\"success\":{\"department\":{\"dept_id\":\""+ response.getId() +"\",\"company\":\"" + response.getCompany() + "\",\"dept_name\":\""+ response.getDeptName() +"\",\"dept_no\": \""+ response.getDeptNo() +"\",\"location\":\""+ response.getLocation() + "\"}}}";
@@ -109,7 +109,7 @@ public class Buisness{
         try{
             dl = new DataLayer("development");
             Gson gson = new Gson();
-            Department department = gson.fromJson(dept, Department.class);
+            BuisnessLayer.Department department = gson.fromJson(dept, BuisnessLayer.Department.class);
             dl.deleteDepartment(department.getCompany(),department.getDepartmentID());
             responseString = "{\"success\":\" Department "+ department.getDepartmentID() +" from " +department.getCompany() + " \"}";
             return responseString;
